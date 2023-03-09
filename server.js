@@ -1,13 +1,17 @@
 dotenv.config();
 import express from "express";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-import db from "./config/db.js";
+import connectDB from "./config/db.js";
+import AuthRoute from "./routes/AuthRoute.js";
+
 const app = express();
 
-db();
+connectDB();
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "30mb", extended: true }));
+app.use(express.urlencoded({ limit: "30mb", extended: true }));
+
+app.use("/auth", AuthRoute);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening at Port ${process.env.PORT}`);
