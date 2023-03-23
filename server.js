@@ -12,6 +12,11 @@ const app = express();
 
 connectDB();
 
+// to serve images for public
+app.use(express.static("public"));
+app.use("/images", express.static("images"));
+
+// middlewares
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
