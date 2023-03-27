@@ -2,6 +2,21 @@ import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+// get all users
+export const getAllUsers = async (req, res) => {
+  try {
+    let users = await User.find();
+
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
 // get a user
 export const getUser = async (req, res) => {
   const id = req.params.id;
@@ -51,9 +66,9 @@ export const updateUser = async (req, res) => {
 // delete user
 export const deleteUser = async (req, res) => {
   const id = req.params.id;
-  const { currentUserId, currentUserAdminStatus } = req.body;
+  const { _id, currentUserAdminStatus } = req.body;
 
-  if (id === currentUserId || currentUserAdminStatus) {
+  if (id === _id || currentUserAdminStatus) {
     try {
       await User.findByIdAndDelete(id);
       res.status(200).json("User deleted successfully");
@@ -69,18 +84,18 @@ export const deleteUser = async (req, res) => {
 export const followUser = async (req, res) => {
   const id = req.params.id;
 
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res.status(403).json("Action forbidder");
   } else {
     try {
       const userToBeFollowed = await User.findById(id);
-      const followingUser = await User.findById(currentUserId);
+      const followingUser = await User.findById(_id);
 
-      if (!userToBeFollowed.followers.includes(currentUserId)) {
+      if (!userToBeFollowed.followers.includes(_id)) {
         await userToBeFollowed.updateOne({
-          $push: { followers: currentUserId },
+          $push: { followers: _id },
         });
         await followingUser.updateOne({
           $push: { following: id },
@@ -99,18 +114,18 @@ export const followUser = async (req, res) => {
 export const unFollowUser = async (req, res) => {
   const id = req.params.id;
 
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res.status(403).json("Action forbidder");
   } else {
     try {
       const userToBeUnFollowed = await User.findById(id);
-      const unFollowingUser = await User.findById(currentUserId);
+      const unFollowingUser = await User.findById(_id);
 
-      if (userToBeUnFollowed.followers.includes(currentUserId)) {
+      if (userToBeUnFollowed.followers.includes(_id)) {
         await userToBeUnFollowed.updateOne({
-          $pull: { followers: currentUserId },
+          $pull: { followers: _id },
         });
         await unFollowingUser.updateOne({
           $pull: { following: id },
